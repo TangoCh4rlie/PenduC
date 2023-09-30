@@ -4,12 +4,13 @@
 #include <string.h>
 #include <time.h>
 
-#include "databaseConnection.h"
+#include "dbFunctions.h"
 
 char *listMot[2] = {"bonjour", "salut"};
 char *mot;
 char *motDevoile;
 char listeLettreFausse[26];
+int nbErreur;
 
 void initVar() {
   srand(time(NULL));
@@ -23,18 +24,26 @@ void initVar() {
   }
 
   motDevoile[sizeOfWord] = '\0';
+
+  nbErreur = 0;
 }
 
 char saisieLettre() {
   char lettre;
   printf("\nEntrez une lettre -> ");
   scanf(" %c", &lettre);
+  for (int i = 0; i < nbErreur; i++) {
+    if (listeLettreFausse[i] == lettre) {
+      fprintf(stdout, "Attention la lettre a déja été utilisé\n");
+      return '\0';
+    }
+  }
   // TODO faire la verification si c'est bien une lettre
   // TODO mettre la lettre en minuscule
   return lettre;
 }
 
-void finJeu(int nbErreur) {
+void finJeu() {
   if (strcmp(mot, motDevoile) == 0) {
     system("clear");
     printf("Bravo le mot était bien %s", mot);
@@ -43,7 +52,10 @@ void finJeu(int nbErreur) {
   }
 }
 
-void lettreEstDansMot(int nbErreur, char lettre, int sizeOfWord) {
+void lettreEstDansMot(char lettre, int sizeOfWord) {
+  if (lettre == '\0') {
+    return;
+  }
   bool estDedans = false;
   for (int i = 0; i < sizeOfWord; i++) {
     if (lettre == mot[i]) {
@@ -59,11 +71,9 @@ void lettreEstDansMot(int nbErreur, char lettre, int sizeOfWord) {
 
 void jeuPendu() {
   int sizeOfWord = strlen(mot);
-  int nbErreur = 0;
 
   while (strcmp(mot, motDevoile) != 0 && nbErreur < 11) {
     system("clear");
-    databaseConnect();
 
     printf("Le mot contient %d lettres: %s", sizeOfWord, motDevoile);
 
@@ -74,15 +84,16 @@ void jeuPendu() {
 
     printf("\nVous avez %d erreurs", nbErreur);
 
-    lettreEstDansMot(nbErreur, saisieLettre(), sizeOfWord);
+    lettreEstDansMot(saisieLettre(), sizeOfWord);
   }
 
-  finJeu(nbErreur);
+  finJeu();
 
   free(motDevoile);
 }
 
 int main(int argc, char *argv[]) {
+  // databaseConnect();
   initVar();
   jeuPendu();
 
