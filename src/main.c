@@ -4,9 +4,9 @@
 #include <string.h>
 #include <time.h>
 
+#include "dbAction.h"
 #include "dbFunctions.h"
 
-char *listMot[2] = {"bonjour", "salut"};
 char *mot;
 char *motDevoile;
 char listeLettreFausse[26];
@@ -15,7 +15,7 @@ int nbErreur;
 void initVar() {
   srand(time(NULL));
 
-  mot = listMot[rand() % 2];
+  mot = randomWord();
   int sizeOfWord = strlen(mot);
 
   motDevoile = (char *)malloc(sizeOfWord + 1);
@@ -38,18 +38,27 @@ char saisieLettre() {
       return '\0';
     }
   }
+  int hexVal = lettre;
+  if (hexVal >= 65 && hexVal <= 90) {
+    lettre = lettre + 32;
+  } else if (hexVal < 97 || hexVal > 122) {
+    fprintf(stderr, "Le caractère renté n'est pas valable");
+  }
   // TODO faire la verification si c'est bien une lettre
-  // TODO mettre la lettre en minuscule
   return lettre;
 }
 
-void finJeu() {
+int finJeu() {
   if (strcmp(mot, motDevoile) == 0) {
     system("clear");
-    printf("Bravo le mot était bien %s", mot);
+    printf("Bravo le mot était bien %s\n", mot);
+    return 0;
   } else if (nbErreur >= 11) {
-    printf("Perdu le mot était %s", mot);
+    system("clear");
+    printf("Perdu le mot était %s\n", mot);
+    return 1;
   }
+  return 0;
 }
 
 void lettreEstDansMot(char lettre, int sizeOfWord) {
@@ -92,10 +101,44 @@ void jeuPendu() {
   free(motDevoile);
 }
 
-int main(int argc, char *argv[]) {
-  // databaseConnect();
+int pendu() {
   initVar();
   jeuPendu();
+  return 0;
+}
 
+int menu() {
+  int result = 100;
+
+  while (result != 0) {
+    fprintf(stdout, "1: Jouer au pendu\n");
+    fprintf(stdout, "2: Gérer la base de donnée\n");
+    fprintf(stdout, "0: Exit\n");
+    fprintf(stdout, "Que voulez vous faire: ");
+    scanf("%d", &result);
+
+    switch (result) {
+    case 1:
+      pendu();
+      break;
+    case 2:
+      system("clear");
+      databaseConnect();
+      break;
+    case 0:
+      exit(EXIT_SUCCESS);
+      break;
+    default:
+      system("clear");
+      fprintf(stderr, "Ce numéro ne correspond à rien");
+      break;
+    }
+  }
+
+  return 0;
+}
+
+int main(int argc, char *argv[]) {
+  menu();
   return 0;
 }
