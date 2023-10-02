@@ -5,6 +5,21 @@
 
 sqlite3 *db;
 
+char *state1 =
+    "  +---+\n  |   |\n      |\n      |\n      |\n      |\n=========";
+char *state2 =
+    "  +---+\n  |   |\n  O   |\n      |\n      |\n      |\n=========";
+char *state3 =
+    "  +---+\n  |   |\n  O   |\n  |   |\n      |\n      |\n=========";
+char *state4 =
+    "  +---+\n  |   |\n  O   |\n /|   |\n      |\n      |\n=========";
+char *state5 =
+    "  +---+\n  |   |\n  O   |\n /|\\  |\n      |\n      |\n=========";
+char *state6 =
+    "  +---+\n  |   |\n  O   |\n /|\\  |\n /   |\n      |\n=========";
+char *state7 =
+    "  +---+\n  |   |\n  O   |\n /|\\  |\n / \\  |\n      |\n=========";
+
 char *userChooseWord() {
   char *mot = NULL;
   size_t taille = 0;
@@ -135,6 +150,46 @@ int createTableWord() {
   return 0;
 }
 
+int createTableAsciiPendu() {
+  const char *sql = "CREATE TABLE IF NOT EXISTS imgascii (id INTEGER PRIMARY "
+                    "KEY AUTOINCREMENT, img TEXT);";
+  int rc = sqlite3_exec(db, sql, 0, 0, 0);
+
+  if (rc != SQLITE_OK) {
+    fprintf(stderr, "SQL error: %s\n", sqlite3_errmsg(db));
+    return 1;
+  } else {
+    fprintf(stdout, "Done\n");
+  }
+
+  return 0;
+}
+
+int insertAscii(char *ascii) {
+  sqlite3_stmt *stmt;
+  const char *insert_sql = "INSERT INTO imgascii (img) VALUES (?)";
+  int rc = sqlite3_prepare_v2(db, insert_sql, -1, &stmt, NULL);
+
+  if (rc != SQLITE_OK) {
+    fprintf(stderr, "Impossible de préparer la requête : %s\n",
+            sqlite3_errmsg(db));
+    return 1;
+  }
+
+  sqlite3_bind_text(stmt, 1, ascii, -1, SQLITE_STATIC);
+
+  rc = sqlite3_step(stmt);
+  if (rc != SQLITE_DONE) {
+    fprintf(stderr, "Erreur lors de l'exécution de la requête : %s\n",
+            sqlite3_errmsg(db));
+    return 1;
+  }
+
+  sqlite3_finalize(stmt);
+
+  return 0;
+}
+
 int countNbLine() {
   sqlite3_stmt *stmt;
   const char *count_sql = "SELECT COUNT(*) FROM mots";
@@ -221,6 +276,15 @@ int menudb() {
       system("clear");
       countNbLine();
       break;
+    case 99:
+      insertAscii(state1);
+      insertAscii(state2);
+      insertAscii(state3);
+      insertAscii(state4);
+      insertAscii(state5);
+      insertAscii(state6);
+      insertAscii(state7);
+      break;
     case 0:
       return 0;
       break;
@@ -242,6 +306,7 @@ int databaseConnect() {
   }
 
   createTableWord();
+  createTableAsciiPendu();
   menudb();
 
   sqlite3_close(db);
