@@ -137,7 +137,7 @@ int deleteWord(char *mot) {
 
 int createTableWord() {
   const char *sql = "CREATE TABLE IF NOT EXISTS mots (id INTEGER PRIMARY KEY "
-                    "AUTOINCREMENT, mot TEXT);";
+                    "AUTOINCREMENT, mot TEXT, nbettres INT);";
   int rc = sqlite3_exec(db, sql, 0, 0, 0);
 
   if (rc != SQLITE_OK) {
